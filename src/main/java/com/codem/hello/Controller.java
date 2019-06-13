@@ -8,7 +8,7 @@ public class Controller {
 
     @RequestMapping(value = "/")
     public String hello() {
-        return "自动部署hello服务成功";
+        return "自动部署hello服务1.1版本成功";
     }
 
 }
