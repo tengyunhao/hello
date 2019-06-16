@@ -39,9 +39,17 @@ public class ProjectPublishController {
     @RequestMapping(value = "/project/list")
     public Object getPublishProjectList() throws URISyntaxException, IOException {
 
-        JenkinsServer jenkins = new JenkinsServer(URI.create("47.105.223.154:8080"), "tengyunhao", "a476911605");
+        JenkinsServer jenkins = new JenkinsServer(URI.create("http://47.105.223.154:8080"), "tengyunhao", "a476911605");
 
         return jenkins.getJobs();
+    }
+
+    @RequestMapping(value = "/project/detail")
+    public Object getPublishProjectDetail() throws URISyntaxException, IOException {
+
+        JenkinsServer jenkins = new JenkinsServer(URI.create("http://47.105.223.154:8080"), "tengyunhao", "a476911605");
+
+        return jenkins.getJob("hello");
     }
 
 }
