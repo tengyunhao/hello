@@ -1,12 +1,14 @@
 package com.codem.hello.controller;
 
-import com.offbytwo.jenkins.JenkinsServer;
-import org.springframework.stereotype.Controller;
+import com.codem.hello.manager.ProjectPublishManager;
+import com.codem.hello.vo.ProjectPublishDetailVo;
+import org.dom4j.DocumentException;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.Resource;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 
 /**
@@ -30,6 +32,8 @@ import java.net.URISyntaxException;
 @RestController
 public class ProjectPublishController {
 
+    @Resource
+    private ProjectPublishManager projectPublishManager;
 
     @RequestMapping(value = "/publish")
     public String publish() {
@@ -38,18 +42,12 @@ public class ProjectPublishController {
 
     @RequestMapping(value = "/project/list")
     public Object getPublishProjectList() throws URISyntaxException, IOException {
-
-        JenkinsServer jenkins = new JenkinsServer(URI.create("http://47.105.223.154:8080"), "tengyunhao", "a476911605");
-
-        return jenkins.getJobs();
+        return projectPublishManager.getPublishProjectList();
     }
 
     @RequestMapping(value = "/project/detail")
-    public Object getPublishProjectDetail() throws URISyntaxException, IOException {
-
-        JenkinsServer jenkins = new JenkinsServer(URI.create("http://47.105.223.154:8080"), "tengyunhao", "a476911605");
-
-        return jenkins.getJob("hello");
+    public ProjectPublishDetailVo getPublishProjectDetail() throws URISyntaxException, IOException, DocumentException, GitAPIException {
+        return projectPublishManager.getPublishProjectDetail();
     }
 
 }

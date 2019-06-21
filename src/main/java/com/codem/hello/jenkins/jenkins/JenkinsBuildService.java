@@ -1,9 +1,6 @@
 package com.codem.hello.jenkins.jenkins;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.codem.hello.jenkins.JenkinsDto;
-import com.codem.hello.jenkins.JobDto;
 import org.apache.http.Consts;
 import org.apache.http.HttpHost;
 import org.apache.http.NameValuePair;
@@ -37,24 +34,6 @@ public class JenkinsBuildService {
     private String jenkinsUser = "tengyunhao";
     private String jenkinsPassword = "a476911605";
     private CloseableHttpClient httpClient = HttpClientPool.getHttpClient();
-
-    public List<JobDto> list() {
-        String format = "http://%s:%s/api/json";
-        CloseableHttpResponse rsp = null;
-        HttpGet httpGet = new HttpGet(String.format(format, jenkinsHost, jenkinsPort));
-        try {
-            rsp = httpClient.execute(httpGet, this.getHttpClientContext());
-            String jsonResult = EntityUtils.toString(rsp.getEntity());
-            JenkinsDto jenkinsDto = JSONObject.parseObject(jsonResult, JenkinsDto.class);
-            return jenkinsDto.getJobs();
-        } catch (Exception e) {
-        } finally {
-            HttpUtil.close(rsp);
-            format = null;
-            httpGet = null;
-        }
-        return null;
-    }
 
     public void build(String jobName, Map<String, String> parameters) {
         String format = "http://%s:%s/job/%s/build";
