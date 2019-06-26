@@ -1,44 +1,46 @@
 package com.codem.hello.vo;
 
+import java.util.List;
+
 public class ProjectPublishDetailVo {
 
-    private String gitUrl;
+    private String codeUrl;
 
-    private String gitBranch;
+    private String codeBranch;
 
-    private String machineName;
+    private List<String> codeBranchhList;
 
-    private String machineIp;
+    private List<ProjectPublishMachineVo> machineList;
 
-    public String getGitUrl() {
-        return gitUrl;
+    public String getCodeUrl() {
+        return codeUrl;
     }
 
-    public void setGitUrl(String gitUrl) {
-        this.gitUrl = gitUrl;
+    public void setCodeUrl(String codeUrl) {
+        this.codeUrl = codeUrl;
     }
 
-    public String getGitBranch() {
-        return gitBranch;
+    public String getCodeBranch() {
+        return codeBranch;
     }
 
-    public void setGitBranch(String gitBranch) {
-        this.gitBranch = gitBranch;
+    public void setCodeBranch(String codeBranch) {
+        this.codeBranch = codeBranch;
     }
 
-    public String getMachineName() {
-        return machineName;
+    public List<String> getCodeBranchhList() {
+        return codeBranchhList;
     }
 
-    public void setMachineName(String machineName) {
-        this.machineName = machineName;
+    public void setCodeBranchhList(List<String> codeBranchhList) {
+        this.codeBranchhList = codeBranchhList;
     }
 
-    public String getMachineIp() {
-        return machineIp;
+    public List<ProjectPublishMachineVo> getMachineList() {
+        return machineList;
     }
 
-    public void setMachineIp(String machineIp) {
-        this.machineIp = machineIp;
+    public void setMachineList(List<ProjectPublishMachineVo> machineList) {
+        this.machineList = machineList;
     }
 }
