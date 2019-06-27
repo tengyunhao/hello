@@ -6,12 +6,11 @@ import com.codem.hello.vo.ProjectPublishDetailVo;
 import com.codem.hello.vo.ProjectPublishMachineVo;
 import com.codem.hello.vo.ProjectPublishTaskVo;
 import com.codem.hello.vo.ProjectPublishVo;
+import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.offbytwo.jenkins.JenkinsServer;
-import com.offbytwo.jenkins.model.Build;
-import com.offbytwo.jenkins.model.BuildWithDetails;
-import com.offbytwo.jenkins.model.Job;
-import com.offbytwo.jenkins.model.JobWithDetails;
+import com.offbytwo.jenkins.model.*;
+import org.apache.commons.collections.CollectionUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -27,9 +26,10 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.google.common.collect.Collections2.filter;
 
 @Service
 public class PublishProjectManager {
@@ -48,18 +48,58 @@ public class PublishProjectManager {
             ProjectPublishTaskVo taskVo = new ProjectPublishTaskVo();
             taskVo.setAppkey(appkey);
             taskVo.setPublishId(Long.parseLong(details.getId()));
-//            taskVo.setPublishByName();
-//            taskVo.setPublishStatus(details.getResult());
-//            taskVo.setCodeUrl();
-//            taskVo.setCodeBranch();
+            taskVo.setPublishByName(details.getCauses().get(0).getUserName());
+            taskVo.setPublishStatus(convertPublishStatus(details.getResult()));
+            taskVo.setCodeUrl(getCodeUrl(details.getActions()));
+            taskVo.setCodeBranch(getBranchName(details.getActions()));
             taskVo.setCreateTime(new Date(details.getTimestamp()));
             taskVo.setCompleteTime(new Date(details.getTimestamp() + details.getDuration()));
-            System.out.println(details.getActions());
-            System.out.println(details.getCauses().get(0).getUserName());
             taskVoList.add(taskVo);
             break;
         }
         return taskVoList;
+    }
+
+
+    public String getBranchName(List actions) {
+        // actions is a List<Map<String, List<Map<String, String ..
+        // we have a List[i]["causes"] -> List[BuildCause]
+        Collection causes = filter(actions, new Predicate<Map<String, Object>>() {
+            @Override
+            public boolean apply(Map<String, Object> action) {
+                return action.containsKey("remoteUrls");
+            }
+        });
+        if (CollectionUtils.isEmpty(causes)) {
+            return null;
+        }
+        LinkedHashMap<String, Object> gitMap = (LinkedHashMap) Lists.newLinkedList(causes).get(0);
+        return (String) ((LinkedHashMap) gitMap.get("buildsByBranchName")).keySet().toArray()[0];
+    }
+
+    public String getCodeUrl(List actions) {
+        // actions is a List<Map<String, List<Map<String, String ..
+        // we have a List[i]["causes"] -> List[BuildCause]
+        Collection causes = filter(actions, new Predicate<Map<String, Object>>() {
+            @Override
+            public boolean apply(Map<String, Object> action) {
+                return action.containsKey("remoteUrls");
+            }
+        });
+        if (CollectionUtils.isEmpty(causes)) {
+            return null;
+        }
+        LinkedHashMap<String, Object> gitMap = (LinkedHashMap) Lists.newLinkedList(causes).get(0);
+        return (String) ((List) gitMap.get("remoteUrls")).get(0);
+    }
+
+    private PublishStatusEnum convertPublishStatus(BuildResult result) {
+        switch (result) {
+            case SUCCESS:
+                return PublishStatusEnum.SUCCESS;
+            default:
+                return PublishStatusEnum.UNKNOWN;
+        }
     }
 
     public List<ProjectPublishVo> getPublishProjectList() throws URISyntaxException, IOException {
