@@ -9,6 +9,7 @@ import com.codem.hello.vo.ProjectPublishVo;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.offbytwo.jenkins.JenkinsServer;
+import com.offbytwo.jenkins.helper.Range;
 import com.offbytwo.jenkins.model.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.dom4j.Document;
@@ -40,28 +41,30 @@ public class PublishProjectManager {
 
         JobWithDetails job = jenkins.getJob(appkey);
 
-        List<Build> builds = job.getBuilds();
-
+        List<Build> builds = job.getAllBuilds(Range.build().from(0).to(10));
         List<ProjectPublishTaskVo> taskVoList = Lists.newArrayList();
         for (Build build : builds) {
             BuildWithDetails details = build.details();
             ProjectPublishTaskVo taskVo = new ProjectPublishTaskVo();
             taskVo.setAppkey(appkey);
             taskVo.setPublishId(Long.parseLong(details.getId()));
-            taskVo.setPublishByName(details.getCauses().get(0).getUserName());
+            taskVo.setPublishByName(getPublishByName(details.getCauses().get(0)));
             taskVo.setPublishStatus(convertPublishStatus(details.getResult()));
             taskVo.setCodeUrl(getCodeUrl(details.getActions()));
             taskVo.setCodeBranch(getBranchName(details.getActions()));
             taskVo.setCreateTime(new Date(details.getTimestamp()));
             taskVo.setCompleteTime(new Date(details.getTimestamp() + details.getDuration()));
             taskVoList.add(taskVo);
-            break;
         }
         return taskVoList;
     }
 
+    private String getPublishByName(BuildCause buildCause) {
+        return buildCause.getUserName();
+    }
 
-    public String getBranchName(List actions) {
+
+    private String getBranchName(List actions) {
         // actions is a List<Map<String, List<Map<String, String ..
         // we have a List[i]["causes"] -> List[BuildCause]
         Collection causes = filter(actions, new Predicate<Map<String, Object>>() {
@@ -77,7 +80,7 @@ public class PublishProjectManager {
         return (String) ((LinkedHashMap) gitMap.get("buildsByBranchName")).keySet().toArray()[0];
     }
 
-    public String getCodeUrl(List actions) {
+    private String getCodeUrl(List actions) {
         // actions is a List<Map<String, List<Map<String, String ..
         // we have a List[i]["causes"] -> List[BuildCause]
         Collection causes = filter(actions, new Predicate<Map<String, Object>>() {
@@ -109,11 +112,18 @@ public class PublishProjectManager {
         List<Job> jobs = Lists.newArrayList(jenkins.getJobs().values());
 
         return jobs.stream().map(job -> {
+            BuildWithDetails details;
+            try {
+                Build build = job.details().getLastBuild();
+                details = build.details();
+            } catch (IOException e) {
+                throw new RuntimeException("");
+            }
             ProjectPublishVo projectPublishVo = new ProjectPublishVo();
             projectPublishVo.setAppkey("hello");
             projectPublishVo.setDescribe("");
-            projectPublishVo.setLastPublishByName("");
-            projectPublishVo.setLastPublishTime(new Date());
+            projectPublishVo.setLastPublishByName(getPublishByName(details.getCauses().get(0)));
+            projectPublishVo.setLastPublishTime(new Date(details.getTimestamp()));
             projectPublishVo.setLastPublishStatus(PublishStatusEnum.SUCCESS);
             return projectPublishVo;
         }).collect(Collectors.toList());
