@@ -1,6 +1,5 @@
 package com.codem.hello.manager;
 
-import com.alibaba.fastjson.JSON;
 import com.codem.hello.constant.PublishStatusEnum;
 import com.codem.hello.vo.ProjectPublishDetailVo;
 import com.codem.hello.vo.ProjectPublishMachineVo;
@@ -48,7 +47,7 @@ public class PublishProjectManager {
             ProjectPublishTaskVo taskVo = new ProjectPublishTaskVo();
             taskVo.setAppkey(appkey);
             taskVo.setPublishId(Long.parseLong(details.getId()));
-            taskVo.setPublishByName(getPublishByName(details.getCauses().get(0)));
+            taskVo.setPublishByName(getPublishByName(details.getCauses()));
             taskVo.setPublishStatus(convertPublishStatus(details.getResult()));
             taskVo.setCodeUrl(getCodeUrl(details.getActions()));
             taskVo.setCodeBranch(getBranchName(details.getActions()));
@@ -59,8 +58,11 @@ public class PublishProjectManager {
         return taskVoList;
     }
 
-    private String getPublishByName(BuildCause buildCause) {
-        return buildCause.getUserName();
+    private String getPublishByName(List<BuildCause> buildCauseList) {
+        if (CollectionUtils.isEmpty(buildCauseList)) {
+            return null;
+        }
+        return buildCauseList.get(0).getUserName();
     }
 
 
@@ -122,7 +124,7 @@ public class PublishProjectManager {
             ProjectPublishVo projectPublishVo = new ProjectPublishVo();
             projectPublishVo.setAppkey("hello");
             projectPublishVo.setDescribe("");
-            projectPublishVo.setLastPublishByName(getPublishByName(details.getCauses().get(0)));
+            projectPublishVo.setLastPublishByName(getPublishByName(details.getCauses()));
             projectPublishVo.setLastPublishTime(new Date(details.getTimestamp()));
             projectPublishVo.setLastPublishStatus(PublishStatusEnum.SUCCESS);
             return projectPublishVo;

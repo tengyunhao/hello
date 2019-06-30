@@ -8,8 +8,6 @@ public class ProjectPublishVo {
 
     private String appkey;
 
-    private String describe;
-
     private PublishStatusEnum lastPublishStatus;
 
     private String lastPublishByName;
@@ -22,14 +20,6 @@ public class ProjectPublishVo {
 
     public void setAppkey(String appkey) {
         this.appkey = appkey;
-    }
-
-    public String getDescribe() {
-        return describe;
-    }
-
-    public void setDescribe(String describe) {
-        this.describe = describe;
     }
 
     public PublishStatusEnum getLastPublishStatus() {
