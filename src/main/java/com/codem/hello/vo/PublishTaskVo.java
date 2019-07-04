@@ -4,7 +4,7 @@ import com.codem.hello.constant.PublishStatusEnum;
 
 import java.util.Date;
 
-public class ProjectPublishTaskVo {
+public class PublishTaskVo {
 
     private String appkey;
 

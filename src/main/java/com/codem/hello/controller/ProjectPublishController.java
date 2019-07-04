@@ -1,9 +1,9 @@
 package com.codem.hello.controller;
 
 import com.codem.hello.manager.PublishProjectManager;
-import com.codem.hello.vo.ProjectPublishDetailVo;
-import com.codem.hello.vo.ProjectPublishTaskVo;
-import com.codem.hello.vo.ProjectPublishVo;
+import com.codem.hello.vo.PublishReadyVo;
+import com.codem.hello.vo.PublishTaskVo;
+import com.codem.hello.vo.PublishProjectVo;
 import org.dom4j.DocumentException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -16,6 +16,68 @@ import java.net.URISyntaxException;
 import java.util.List;
 
 /**
+ 1、查询项目列表
+ 请求：
+    http://localhost:8123/project/list
+ 返回：
+     [
+        {
+            "appkey": "hello",
+            "lastPublishStatus": "SUCCESS",
+            "lastPublishByName": "tengyunhao",
+            "lastPublishTime": "2019-06-22T10:43:08.244+0000"
+        },
+        {
+            "appkey": "hello",
+            "lastPublishStatus": "SUCCESS",
+            "lastPublishByName": null,
+            "lastPublishTime": "1970-01-01T00:00:00.000+0000"
+        }
+     ]
+
+ 2、查询发布准备信息
+ 请求：
+    http://localhost:8123/project/deploy/ready?appkey=com.codem.platform.deployer
+ 返回：
+    {
+        "codeUrl": "https://github.com/tengyunhao/hello.git",
+        "codeBranch": "*\/master",
+        "machineList": [
+            {
+                "machineIp": "121.42.145.183",
+                "machineName": "121.42.145.183",
+                "lastPublishTime": null
+            }
+        ]
+    }
+
+ 3、开始发布服务
+ 请求：
+    http://localhost:8123/project/deploy/start?appkey=com.codem.platform.deployer
+ 返回：
+    任务ID
+
+ 4、任务部署日志
+
+
+ 5、查询项目任务列表
+ 请求：
+    http://localhost:8123/project/task/list?appkey=com.codem.platform.deployer
+ 返回：
+     [
+         {
+             "appkey": "com.codem.platform.deployer",
+             "publishId": 1,
+             "publishByName": "tengyunhao",
+             "publishStatus": "UNKNOWN",
+             "codeUrl": "https://github.com/tengyunhao/hello.git",
+             "codeBranch": "refs/remotes/origin/master",
+             "createTime": "2019-06-30T09:40:01.963+0000",
+             "completeTime": "2019-06-30T09:41:22.708+0000"
+         }
+     ]
+
+ *
  *
  * 1、新增一个发布项（git地址、appkey、部署机器） 待开发
  *
@@ -23,16 +85,7 @@ import java.util.List;
  *
  * 3、删除一个发布项（发布项ID）
  *
- * 4、查询发布项列表
  *
- *
- * 5、ok 查询发布项明细（Git地址及分支、AppKey、部署机器列表） jenkins接口支持，细节待完善
- *
- * 6、ok 发布服务
- *
- * 7、发布项的任务列表（appkey、分支、部署机器、）
- *
- * 8、发布项的任务日志
  */
 @RestController
 public class ProjectPublishController {
@@ -46,22 +99,27 @@ public class ProjectPublishController {
     }
 
     @RequestMapping(value = "/project/list")
-    public List<ProjectPublishVo> getPublishProjectList() throws URISyntaxException, IOException {
+    public List<PublishProjectVo> getPublishProjectList() throws URISyntaxException, IOException {
         return publishProjectManager.getPublishProjectList();
     }
 
-    @RequestMapping(value = "/project/deploy/config")
-    public ProjectPublishDetailVo getPublishProjectDetail(String appkey) throws URISyntaxException, IOException, DocumentException, GitAPIException {
-        return publishProjectManager.getPublishProjectDetail(appkey);
+    @RequestMapping(value = "/project/deploy/ready")
+    public PublishReadyVo getPublishProjectReady(String appkey) throws URISyntaxException, IOException, DocumentException, GitAPIException {
+        return publishProjectManager.getPublishDeployReady(appkey);
     }
 
     @RequestMapping(value = "/project/deploy/start")
     public String getPublishProjectDeploy(String appkey) throws URISyntaxException, IOException, DocumentException, GitAPIException {
-        return publishProjectManager.getPublishProjectDeploy(appkey);
+        return publishProjectManager.publishDeployReady(appkey);
+    }
+
+    @RequestMapping(value = "/project/task/log")
+    public String getPublishProjectTaskLog(String appkey, Integer taskId) throws URISyntaxException, IOException, DocumentException, GitAPIException {
+        return publishProjectManager.getPublishProjectTaskLog(appkey, taskId);
     }
 
     @RequestMapping(value = "/project/task/list")
-    public List<ProjectPublishTaskVo> getPublishProjectTaskList(String appkey) throws URISyntaxException, IOException, DocumentException, GitAPIException {
+    public List<PublishTaskVo> getPublishProjectTaskList(String appkey) throws URISyntaxException, IOException, DocumentException, GitAPIException {
         return publishProjectManager.getPublishProjectTaskList(appkey);
     }
 

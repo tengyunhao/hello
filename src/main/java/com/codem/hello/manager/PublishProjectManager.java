@@ -1,10 +1,10 @@
 package com.codem.hello.manager;
 
 import com.codem.hello.constant.PublishStatusEnum;
-import com.codem.hello.vo.ProjectPublishDetailVo;
-import com.codem.hello.vo.ProjectPublishMachineVo;
-import com.codem.hello.vo.ProjectPublishTaskVo;
-import com.codem.hello.vo.ProjectPublishVo;
+import com.codem.hello.vo.PublishReadyVo;
+import com.codem.hello.vo.PublishMachineVo;
+import com.codem.hello.vo.PublishTaskVo;
+import com.codem.hello.vo.PublishProjectVo;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.offbytwo.jenkins.JenkinsServer;
@@ -34,17 +34,17 @@ import static com.google.common.collect.Collections2.filter;
 @Service
 public class PublishProjectManager {
 
-    public List<ProjectPublishTaskVo> getPublishProjectTaskList(String appkey) throws IOException {
+    public List<PublishTaskVo> getPublishProjectTaskList(String appkey) throws IOException {
 
         JenkinsServer jenkins = new JenkinsServer(URI.create("http://47.105.223.154:8080"), "tengyunhao", "a476911605");
 
         JobWithDetails job = jenkins.getJob(appkey);
 
         List<Build> builds = job.getAllBuilds(Range.build().from(0).to(10));
-        List<ProjectPublishTaskVo> taskVoList = Lists.newArrayList();
+        List<PublishTaskVo> taskVoList = Lists.newArrayList();
         for (Build build : builds) {
             BuildWithDetails details = build.details();
-            ProjectPublishTaskVo taskVo = new ProjectPublishTaskVo();
+            PublishTaskVo taskVo = new PublishTaskVo();
             taskVo.setAppkey(appkey);
             taskVo.setPublishId(Long.parseLong(details.getId()));
             taskVo.setPublishByName(getPublishByName(details.getCauses()));
@@ -56,6 +56,16 @@ public class PublishProjectManager {
             taskVoList.add(taskVo);
         }
         return taskVoList;
+    }
+
+    public String getPublishProjectTaskLog(String appkey, Integer taskId) throws IOException {
+
+        JenkinsServer jenkins = new JenkinsServer(URI.create("http://47.105.223.154:8080"), "tengyunhao", "a476911605");
+
+        JobWithDetails job = jenkins.getJob(appkey);
+
+        return job.getBuildByNumber(taskId).details().getConsoleOutputText();
+
     }
 
     private String getPublishByName(List<BuildCause> buildCauseList) {
@@ -107,7 +117,7 @@ public class PublishProjectManager {
         }
     }
 
-    public List<ProjectPublishVo> getPublishProjectList() throws URISyntaxException, IOException {
+    public List<PublishProjectVo> getPublishProjectList() throws URISyntaxException, IOException {
 
         JenkinsServer jenkins = new JenkinsServer(URI.create("http://47.105.223.154:8080"), "tengyunhao", "a476911605");
 
@@ -121,17 +131,46 @@ public class PublishProjectManager {
             } catch (IOException e) {
                 throw new RuntimeException("");
             }
-            ProjectPublishVo projectPublishVo = new ProjectPublishVo();
-            projectPublishVo.setAppkey("hello");
-            projectPublishVo.setDescribe("");
-            projectPublishVo.setLastPublishByName(getPublishByName(details.getCauses()));
-            projectPublishVo.setLastPublishTime(new Date(details.getTimestamp()));
-            projectPublishVo.setLastPublishStatus(PublishStatusEnum.SUCCESS);
-            return projectPublishVo;
+            PublishProjectVo projectQueryResultVo = new PublishProjectVo();
+            projectQueryResultVo.setAppkey("hello");
+            projectQueryResultVo.setLastPublishByName(getPublishByName(details.getCauses()));
+            projectQueryResultVo.setLastPublishTime(new Date(details.getTimestamp()));
+            projectQueryResultVo.setLastPublishStatus(PublishStatusEnum.SUCCESS);
+            return projectQueryResultVo;
         }).collect(Collectors.toList());
     }
 
-    public ProjectPublishDetailVo getPublishProjectDetail(String appkey) throws URISyntaxException, IOException, DocumentException, GitAPIException {
+    public PublishReadyVo getPublishDeployReady(String appkey) throws URISyntaxException, IOException, DocumentException, GitAPIException {
+
+        JenkinsServer jenkins = new JenkinsServer(URI.create("http://47.105.223.154:8080"), "tengyunhao", "a476911605");
+        String jobXml = jenkins.getJobXml(appkey);
+
+        SAXReader reader = new SAXReader();
+        Document doc = reader.read(new StringReader(jobXml));
+
+        PublishReadyVo detailVo = new PublishReadyVo();
+        detailVo.setCodeUrl(getGitUrl(doc));
+        detailVo.setCodeBranch(getGitBranch(doc));
+
+        PublishMachineVo machineVo = new PublishMachineVo();
+        machineVo.setMachineIp(getMachineIp(doc));
+        machineVo.setMachineName(getMachineIp(doc));
+
+        detailVo.setMachineList(Lists.newArrayList(machineVo));
+
+        return detailVo;
+    }
+
+    public String publishDeployReady(String appkey) throws IOException {
+        JenkinsServer jenkins = new JenkinsServer(URI.create("http://47.105.223.154:8080"), "tengyunhao", "a476911605");
+
+        JobWithDetails job = jenkins.getJob(appkey);
+        int taskId = job.getNextBuildNumber();    /*获取下一次构建的构建编号，可以用于在触发构建前，先记录构建编号。在后续获取指定编号的构建结果*/
+        job.build(true);                 /*执行指定任务的构建操作*/
+        return String.valueOf(taskId);
+    }
+
+    public PublishReadyVo getPublishProjectDetail(String appkey) throws URISyntaxException, IOException, DocumentException, GitAPIException {
 
 //        CloneCommand cc = Git.cloneRepository().setURI("https://github.com/tengyunhao/hello.git");
 //        cc.setDirectory(new File("/Users/tengyunhao/Downloads/java/workspace/hello/git")).call();
@@ -146,16 +185,15 @@ public class PublishProjectManager {
         SAXReader reader = new SAXReader();
         Document doc = reader.read(new StringReader(jobXml));
 
-        ProjectPublishDetailVo detailVo = new ProjectPublishDetailVo();
+        PublishReadyVo detailVo = new PublishReadyVo();
         detailVo.setCodeUrl(getGitUrl(doc));
         detailVo.setCodeBranch(getGitBranch(doc));
 
-        ProjectPublishMachineVo machineVo = new ProjectPublishMachineVo();
+        PublishMachineVo machineVo = new PublishMachineVo();
         machineVo.setMachineIp(getMachineIp(doc));
         machineVo.setMachineName(getMachineIp(doc));
 
         detailVo.setMachineList(Lists.newArrayList(machineVo));
-        detailVo.setCodeBranchhList(list);
 
         return detailVo;
     }

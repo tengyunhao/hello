@@ -2,15 +2,13 @@ package com.codem.hello.vo;
 
 import java.util.List;
 
-public class ProjectPublishDetailVo {
+public class PublishReadyVo {
 
     private String codeUrl;
 
     private String codeBranch;
 
-    private List<String> codeBranchhList;
-
-    private List<ProjectPublishMachineVo> machineList;
+    private List<PublishMachineVo> machineList;
 
     public String getCodeUrl() {
         return codeUrl;
@@ -28,19 +26,11 @@ public class ProjectPublishDetailVo {
         this.codeBranch = codeBranch;
     }
 
-    public List<String> getCodeBranchhList() {
-        return codeBranchhList;
-    }
-
-    public void setCodeBranchhList(List<String> codeBranchhList) {
-        this.codeBranchhList = codeBranchhList;
-    }
-
-    public List<ProjectPublishMachineVo> getMachineList() {
+    public List<PublishMachineVo> getMachineList() {
         return machineList;
     }
 
-    public void setMachineList(List<ProjectPublishMachineVo> machineList) {
+    public void setMachineList(List<PublishMachineVo> machineList) {
         this.machineList = machineList;
     }
 }
