@@ -74,5 +74,22 @@
 			</plugin>
 		</plugins>
 	</build>
+	
+	<!-- nexus私服配置 -->
+	<repositories>
+		<repository>
+			<id>nexus</id>
+			<name>Nexus Repository</name>
+			<url>http://121.42.145.183:8888/repository/maven-snapshots/</url>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<!--snapshots默认是关闭的,需要开启  -->
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+
 
 </project>
