@@ -1,8 +1,6 @@
 package com.codem.hello.constant;
 
-import cn.com.codem.commons.lang.constant.EnumValue;
-
-public enum PublishStatusEnum implements EnumValue<Short> {
+public enum PublishStatusEnum {
     WAITING((short) 0, "等待中"),
     PROCESS((short) 1, "发布中"),
     SUCCESS((short) 2, "成功"),
