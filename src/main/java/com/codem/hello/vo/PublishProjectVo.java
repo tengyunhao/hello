@@ -1,14 +1,12 @@
 package com.codem.hello.vo;
 
-import com.codem.hello.constant.PublishStatusEnum;
-
 import java.util.Date;
 
 public class PublishProjectVo {
 
     private String appkey;
 
-    private PublishStatusEnum lastPublishStatus;
+    private String lastPublishStatus;
 
     private String lastPublishByName;
 
@@ -22,11 +20,11 @@ public class PublishProjectVo {
         this.appkey = appkey;
     }
 
-    public PublishStatusEnum getLastPublishStatus() {
+    public String getLastPublishStatus() {
         return lastPublishStatus;
     }
 
-    public void setLastPublishStatus(PublishStatusEnum lastPublishStatus) {
+    public void setLastPublishStatus(String lastPublishStatus) {
         this.lastPublishStatus = lastPublishStatus;
     }
 

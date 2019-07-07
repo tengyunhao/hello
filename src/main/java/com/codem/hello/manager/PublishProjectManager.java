@@ -132,10 +132,10 @@ public class PublishProjectManager {
                 throw new RuntimeException("");
             }
             PublishProjectVo projectQueryResultVo = new PublishProjectVo();
-            projectQueryResultVo.setAppkey("hello");
+            projectQueryResultVo.setAppkey(job.getName());
             projectQueryResultVo.setLastPublishByName(getPublishByName(details.getCauses()));
             projectQueryResultVo.setLastPublishTime(new Date(details.getTimestamp()));
-            projectQueryResultVo.setLastPublishStatus(PublishStatusEnum.SUCCESS);
+            projectQueryResultVo.setLastPublishStatus(PublishStatusEnum.SUCCESS.desc());
             return projectQueryResultVo;
         }).collect(Collectors.toList());
     }
