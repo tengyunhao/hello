@@ -40,7 +40,7 @@ public class PublishProjectManager {
 
         JobWithDetails job = jenkins.getJob(appkey);
 
-        List<Build> builds = job.getAllBuilds(Range.build().from(0).to(10));
+        List<Build> builds = job.getAllBuilds(Range.build().from(1).to(10));
         List<PublishTaskVo> taskVoList = Lists.newArrayList();
         for (Build build : builds) {
             BuildWithDetails details = build.details();
