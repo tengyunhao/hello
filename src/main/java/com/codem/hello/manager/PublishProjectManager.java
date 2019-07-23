@@ -49,10 +49,10 @@ public class PublishProjectManager {
             taskVo.setPublishId(Long.parseLong(details.getId()));
             taskVo.setPublishByName(getPublishByName(details.getCauses()));
             taskVo.setPublishStatus(convertPublishStatus(details.getResult()));
-            taskVo.setCodeUrl(getCodeUrl(details.getActions()));
-            taskVo.setCodeBranch(getBranchName(details.getActions()));
-            taskVo.setCreateTime(new Date(details.getTimestamp()));
-            taskVo.setCompleteTime(new Date(details.getTimestamp() + details.getDuration()));
+//            taskVo.setCodeUrl(getCodeUrl(details.getActions()));
+//            taskVo.setCodeBranch(getBranchName(details.getActions()));
+//            taskVo.setCreateTime(new Date(details.getTimestamp()));
+//            taskVo.setCompleteTime(new Date(details.getTimestamp() + details.getDuration()));
             taskVoList.add(taskVo);
         }
         return taskVoList;
