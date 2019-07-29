@@ -1,6 +1,7 @@
 package com.codem.hello.vo;
 
 import com.codem.hello.constant.PublishStatusEnum;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.util.Date;
 
@@ -18,8 +19,10 @@ public class PublishTaskVo {
 
     private String codeBranch;
 
+    @JsonFormat(timezone = "GMT+8", pattern="yyyy-MM-dd HH:mm:ss")
     private Date createTime;
 
+    @JsonFormat(timezone = "GMT+8", pattern="yyyy-MM-dd HH:mm:ss")
     private Date completeTime;
 
     public String getAppkey() {

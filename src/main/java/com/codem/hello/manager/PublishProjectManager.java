@@ -39,20 +39,31 @@ public class PublishProjectManager {
         JenkinsServer jenkins = new JenkinsServer(URI.create("http://47.105.223.154:8080"), "tengyunhao", "a476911605");
 
         JobWithDetails job = jenkins.getJob(appkey);
-
-        List<Build> builds = job.getAllBuilds(Range.build().from(1).to(10));
+        List<Build> builds = job.getAllBuilds(Range.build().from(0).to(10));
         List<PublishTaskVo> taskVoList = Lists.newArrayList();
+        if (job.isInQueue()) {
+            QueueItem queueItem = job.getQueueItem();
+            PublishTaskVo lastTaskVo = new PublishTaskVo();
+            lastTaskVo.setAppkey(appkey);
+//            lastTaskVo.setPublishId(null);
+//            lastTaskVo.setPublishByName(getPublishByName(null));
+            lastTaskVo.setPublishStatus(PublishStatusEnum.WAITING);
+            lastTaskVo.setCodeUrl(getCodeUrl(queueItem.getActions()));
+            lastTaskVo.setCodeBranch(getBranchName(queueItem.getActions()));
+            taskVoList.add(lastTaskVo);
+        }
         for (Build build : builds) {
             BuildWithDetails details = build.details();
+            PublishStatusEnum publishStatus = convertPublishStatus(details.getResult());
             PublishTaskVo taskVo = new PublishTaskVo();
             taskVo.setAppkey(appkey);
             taskVo.setPublishId(Long.parseLong(details.getId()));
             taskVo.setPublishByName(getPublishByName(details.getCauses()));
-            taskVo.setPublishStatus(convertPublishStatus(details.getResult()));
-//            taskVo.setCodeUrl(getCodeUrl(details.getActions()));
-//            taskVo.setCodeBranch(getBranchName(details.getActions()));
-//            taskVo.setCreateTime(new Date(details.getTimestamp()));
-//            taskVo.setCompleteTime(new Date(details.getTimestamp() + details.getDuration()));
+            taskVo.setPublishStatus(publishStatus);
+            taskVo.setCodeUrl(getCodeUrl(details.getActions()));
+            taskVo.setCodeBranch(getBranchName(details.getActions()));
+            taskVo.setCreateTime(new Date(details.getTimestamp()));
+            taskVo.setCompleteTime(publishStatus == PublishStatusEnum.PROCESS ? null : new Date(details.getTimestamp() + details.getDuration()));
             taskVoList.add(taskVo);
         }
         return taskVoList;
@@ -77,6 +88,9 @@ public class PublishProjectManager {
 
 
     private String getBranchName(List actions) {
+        if (CollectionUtils.isEmpty(actions)) {
+            return "";
+        }
         // actions is a List<Map<String, List<Map<String, String ..
         // we have a List[i]["causes"] -> List[BuildCause]
         Collection causes = filter(actions, new Predicate<Map<String, Object>>() {
@@ -86,13 +100,16 @@ public class PublishProjectManager {
             }
         });
         if (CollectionUtils.isEmpty(causes)) {
-            return null;
+            return "";
         }
         LinkedHashMap<String, Object> gitMap = (LinkedHashMap) Lists.newLinkedList(causes).get(0);
         return (String) ((LinkedHashMap) gitMap.get("buildsByBranchName")).keySet().toArray()[0];
     }
 
     private String getCodeUrl(List actions) {
+        if (CollectionUtils.isEmpty(actions)) {
+            return "";
+        }
         // actions is a List<Map<String, List<Map<String, String ..
         // we have a List[i]["causes"] -> List[BuildCause]
         Collection causes = filter(actions, new Predicate<Map<String, Object>>() {
@@ -102,13 +119,16 @@ public class PublishProjectManager {
             }
         });
         if (CollectionUtils.isEmpty(causes)) {
-            return null;
+            return "";
         }
         LinkedHashMap<String, Object> gitMap = (LinkedHashMap) Lists.newLinkedList(causes).get(0);
         return (String) ((List) gitMap.get("remoteUrls")).get(0);
     }
 
     private PublishStatusEnum convertPublishStatus(BuildResult result) {
+        if (result == null) {
+            return PublishStatusEnum.PROCESS;
+        }
         switch (result) {
             case SUCCESS:
                 return PublishStatusEnum.SUCCESS;
@@ -162,11 +182,12 @@ public class PublishProjectManager {
     }
 
     public String publishDeployReady(String appkey) throws IOException {
-        JenkinsServer jenkins = new JenkinsServer(URI.create("http://47.105.223.154:8080"), "tengyunhao", "a476911605");
+        JenkinsServer jenkins = new JenkinsServer(URI.create("http://47.105.223.154:8080"), "tengyunhao",  "a476911605");
 
         JobWithDetails job = jenkins.getJob(appkey);
         int taskId = job.getNextBuildNumber();    /*获取下一次构建的构建编号，可以用于在触发构建前，先记录构建编号。在后续获取指定编号的构建结果*/
-        job.build(true);                 /*执行指定任务的构建操作*/
+        job.build(true);
+        job.build(true);  /*执行指定任务的构建操作*/
         return String.valueOf(taskId);
     }
 
